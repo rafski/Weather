@@ -1,8 +1,11 @@
 package com.example.raf.weather;
 
 import android.content.Context;
+import android.content.Intent;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ImageView;
@@ -23,6 +26,17 @@ public class MainActivity extends AppCompatActivity {
     String temperature;
     String icon;
     String summary;
+    LocationManager locationManager;
+
+    public void getLocationProvider(){
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (!enabled) {
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+        }
+    }
+
 
 
     public class DownloadTask extends AsyncTask<String, Void, JSONObject> {
@@ -129,6 +143,6 @@ public class MainActivity extends AppCompatActivity {
         weatherDescription.setText(summary);
         weatherIcon.setImageResource(id);
 
-
+        getLocationProvider();
     }
 }
