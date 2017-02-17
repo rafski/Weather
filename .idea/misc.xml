@@ -38,10 +38,6 @@
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectPlainTextFileTypeManager">
-    <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/sun_low.xml" />
-    <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/sun_lower.xml" />
-    <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/sunrise.xml" />
-    <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/sunset.xml" />
     <file url="file://$PROJECT_DIR$/app/src/main/res/drawable/tornado.xml" />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_7" default="true" assert-keyword="true" jdk-15="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
