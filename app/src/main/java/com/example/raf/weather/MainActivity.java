@@ -1,13 +1,20 @@
 package com.example.raf.weather;
 
+import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -26,18 +33,121 @@ public class MainActivity extends AppCompatActivity {
     String temperature;
     String icon;
     String summary;
-    LocationManager locationManager;
+    String currentLocation;
+    TextView temperatureText;
+    TextView weatherDescription;
+    ImageView weatherIcon;
 
-    public void getLocationProvider(){
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        boolean enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        if (!enabled) {
-            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            startActivity(intent);
+    LocationManager locationManager;
+    LocationListener locationListener;
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            }
+
         }
     }
 
+    public void getLocation() {
 
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+
+                Log.i("Location", String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude()));
+                currentLocation = String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude());
+
+
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+
+        if (Build.VERSION.SDK_INT < 23) {
+
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
+        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            //get explicit permission
+
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
+        } else {
+
+
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
+        }
+
+    }
+
+
+    public void refreshWeather(View view){
+
+        getLocation();
+        updateWeather();
+    }
+
+    public void updateWeather(){
+
+        DownloadTask task = new DownloadTask();
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = task.execute("https://api.darksky.net/forecast/4a3412e7dc871ea6610d108d3d0c6058/51.544524, -0.133146?exclude=minutely,hourly,alerts,flags?&&units=uk2").get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        Log.i("jo", jsonObject.toString());
+
+        JSONObject currently = null;
+        try {
+            currently = jsonObject.getJSONObject("currently");
+
+            temperature = currently.getString("temperature");
+
+            icon = currently.getString("icon");
+
+            summary = currently.getString("summary");
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        String iconReadable = icon.replace("-", "_");
+
+        Context c = getApplicationContext();
+        int id = c.getResources().getIdentifier("drawable/"+iconReadable, null, c.getPackageName());
+
+        temperatureText.setText(temperature + " \u00B0C");
+        weatherDescription.setText(summary);
+        weatherIcon.setImageResource(id);
+    }
 
     public class DownloadTask extends AsyncTask<String, Void, JSONObject> {
 
@@ -104,45 +214,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TextView temperatureText = (TextView)findViewById(R.id.temperatureTextView);
-        TextView weatherDescription = (TextView)findViewById(R.id.weatherDescriptionTextView);
-        ImageView weatherIcon = (ImageView)findViewById(R.id.weatherIcon);
+        temperatureText = (TextView)findViewById(R.id.temperatureTextView);
+        weatherDescription = (TextView)findViewById(R.id.weatherDescriptionTextView);
+        weatherIcon = (ImageView)findViewById(R.id.weatherIcon);
 
+        getLocation();
 
-        DownloadTask task = new DownloadTask();
-        JSONObject jsonObject = null;
-        try {
-            jsonObject = task.execute("https://api.darksky.net/forecast/4a3412e7dc871ea6610d108d3d0c6058/51.544524, -0.133146?exclude=minutely,hourly,alerts,flags?&&units=uk2").get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-
-        Log.i("jo", jsonObject.toString());
-
-        JSONObject currently = null;
-        try {
-            currently = jsonObject.getJSONObject("currently");
-
-            temperature = currently.getString("temperature");
-
-            icon = currently.getString("icon");
-
-            summary = currently.getString("summary");
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        String iconReadable = icon.replace("-", "_");
-
-        Context c = getApplicationContext();
-        int id = c.getResources().getIdentifier("drawable/"+iconReadable, null, c.getPackageName());
-
-        temperatureText.setText(temperature + " \u00B0C");
-        weatherDescription.setText(summary);
-        weatherIcon.setImageResource(id);
-
-        getLocationProvider();
+        updateWeather();
     }
+
 }
