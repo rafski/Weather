@@ -10,6 +10,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -75,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+
     public void refreshWeather(View view){
 
         encodeUrl();
@@ -108,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 currently = jsonObject.getJSONObject("currently");
 
-                temperature = currently.getString("temperature");
+                temperature = String.valueOf(Math.round(currently.getDouble("temperature")));
 
                 icon = currently.getString("icon");
 
@@ -247,6 +251,21 @@ public class MainActivity extends AppCompatActivity {
 
         encodeUrl();
         updateWeather();
+
+
+        FloatingActionButton FAB = (FloatingActionButton) findViewById(R.id.updateWeatherFAB);
+        FAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                encodeUrl();
+                updateWeather();
+
+                Snackbar snackbar = Snackbar
+                        .make(v, "Weather updated", Snackbar.LENGTH_LONG);
+
+                snackbar.show();
+            }
+        });
     }
 
 }
