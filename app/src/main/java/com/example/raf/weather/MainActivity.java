@@ -15,6 +15,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -200,6 +201,9 @@ public class MainActivity extends AppCompatActivity {
         weatherDescription = (TextView)findViewById(R.id.weatherDescriptionTextView);
         weatherIcon = (ImageView)findViewById(R.id.weatherIcon);
 
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
+
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
         locationListener = new LocationListener() {
@@ -256,12 +260,12 @@ public class MainActivity extends AppCompatActivity {
         FloatingActionButton FAB = (FloatingActionButton) findViewById(R.id.updateWeatherFAB);
         FAB.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view) {
                 encodeUrl();
                 updateWeather();
 
                 Snackbar snackbar = Snackbar
-                        .make(v, "Weather updated", Snackbar.LENGTH_LONG);
+                        .make(view, "Weather updated", Snackbar.LENGTH_LONG);
 
                 snackbar.show();
             }
