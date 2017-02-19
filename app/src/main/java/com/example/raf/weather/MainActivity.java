@@ -3,6 +3,8 @@ package com.example.raf.weather;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -24,10 +26,13 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     String currentLocation;
     String encodedUrl;
     String queryString;
+    String currentCity;
+    Location location;
 
     TextView temperatureText;
     TextView weatherDescription;
@@ -58,11 +65,13 @@ public class MainActivity extends AppCompatActivity {
 
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 60000, 500, locationListener);
             }
 
         }
     }
+
+
 
 
     public void encodeUrl(){
@@ -74,16 +83,6 @@ public class MainActivity extends AppCompatActivity {
             queryString = url + key + location + parameters ;
 
         Log.i("generated url", queryString);
-
-    }
-
-
-
-
-    public void refreshWeather(View view){
-
-        encodeUrl();
-        updateWeather();
 
     }
 
@@ -128,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             int id = c.getResources().getIdentifier("drawable/" + iconReadable, null, c.getPackageName());
 
             temperatureText.setText(temperature + " \u00B0C");
-            weatherDescription.setText(summary);
+            weatherDescription.setText("The weather in " + currentCity + " is " + summary);
             weatherIcon.setImageResource(id);
         }
     }
@@ -213,6 +212,23 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("Location", String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude()));
                 currentLocation = String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude());
 
+                Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+
+                try {
+                    List<Address> addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+
+                    if (addressList != null && addressList.size() > 0){
+
+                        Log.i("address", addressList.get(0).toString());
+
+                        currentCity = addressList.get(0).getLocality().toString();
+
+
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
             }
 
             @Override
@@ -234,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (Build.VERSION.SDK_INT < 23) {
 
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 60000, 500, locationListener);
 
         } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
@@ -244,14 +260,33 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
 
-
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 60000, 500, locationListener);
 
 
         }
 
-        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        currentLocation = String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude());
+        if (location == null) {
+            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            currentLocation = String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude());
+
+            Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+
+            try {
+                List<Address> addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+
+                if (addressList != null && addressList.size() > 0){
+
+                    Log.i("address", addressList.get(0).toString());
+
+                    currentCity = addressList.get(0).getLocality().toString();
+
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
 
         encodeUrl();
         updateWeather();
