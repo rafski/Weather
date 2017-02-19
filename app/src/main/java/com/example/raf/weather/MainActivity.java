@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
     String icon;
     String summary;
     String currentLocation;
-    String encodedUrl;
     String queryString;
     String currentCity;
     Location location;
@@ -71,8 +70,29 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void updateLocation (Location location){
+
+        //Log.i("Location", String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude()));
+        currentLocation = String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude());
+
+        Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+
+        try {
+            List<Address> addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+
+            if (addressList != null && addressList.size() > 0){
+
+                //Log.i("address", addressList.get(0).toString());
+
+                currentCity = addressList.get(0).getLocality().toString();
 
 
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     public void encodeUrl(){
 
@@ -82,11 +102,13 @@ public class MainActivity extends AppCompatActivity {
             String parameters = "?exclude=minutely,hourly,alerts,flags?&&units=uk2";
             queryString = url + key + location + parameters ;
 
-        Log.i("generated url", queryString);
+            //Log.i("generated url", queryString);
 
     }
 
     public void updateWeather(){
+
+
 
         if (queryString == null){
 
@@ -170,11 +192,7 @@ public class MainActivity extends AppCompatActivity {
 
                     jsonObject = new JSONObject(result);
 
-                    /*
-
-
-
-                    Log.i("temp now", temperature + icon + summary);*/
+                    //Log.i("temp now", temperature + icon + summary);
 
                 } catch (JSONException e){
                     e.printStackTrace();
@@ -196,6 +214,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        View parentLayout = findViewById(R.id.fabCoordinator);
+
         temperatureText = (TextView)findViewById(R.id.temperatureTextView);
         weatherDescription = (TextView)findViewById(R.id.weatherDescriptionTextView);
         weatherIcon = (ImageView)findViewById(R.id.weatherIcon);
@@ -209,26 +229,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLocationChanged(Location location) {
 
-                Log.i("Location", String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude()));
-                currentLocation = String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude());
-
-                Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-
-                try {
-                    List<Address> addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-
-                    if (addressList != null && addressList.size() > 0){
-
-                        Log.i("address", addressList.get(0).toString());
-
-                        currentCity = addressList.get(0).getLocality().toString();
-
-
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+                updateLocation(location);
             }
 
             @Override
@@ -267,29 +268,21 @@ public class MainActivity extends AppCompatActivity {
 
         if (location == null) {
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            currentLocation = String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude());
-
-            Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-
-            try {
-                List<Address> addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-
-                if (addressList != null && addressList.size() > 0){
-
-                    Log.i("address", addressList.get(0).toString());
-
-                    currentCity = addressList.get(0).getLocality().toString();
-
-
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            updateLocation(location);
 
         }
 
         encodeUrl();
         updateWeather();
+
+        Snackbar.make(parentLayout, "Weather updated", Snackbar.LENGTH_LONG)
+                .setAction("CLOSE", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                    }
+                })
+                .show();
 
 
         FloatingActionButton FAB = (FloatingActionButton) findViewById(R.id.updateWeatherFAB);
@@ -301,8 +294,12 @@ public class MainActivity extends AppCompatActivity {
 
                 Snackbar snackbar = Snackbar
                         .make(view, "Weather updated", Snackbar.LENGTH_LONG);
+                snackbar.setAction("CLOSE", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
 
-                snackbar.show();
+                    }
+                }).show();
             }
         });
     }
