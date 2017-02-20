@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.List;
 import java.util.Locale;
@@ -44,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
     String currentLocation;
     String queryString;
     String currentCity;
+
+    boolean isReachable = false;
+
+
     Location location;
 
     TextView temperatureText;
@@ -107,28 +112,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateWeather(){
-
-
-
-        if (queryString == null){
-
-            temperatureText.setText("Please update weather");
-
-        }else {
+        
+        if (queryString != null && isReachable){
 
             DownloadTask task = new DownloadTask();
             JSONObject jsonObject = null;
 
             try {
                 jsonObject = task.execute(queryString).get();
+                Log.i("jo", jsonObject.toString());
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e) {
                 e.printStackTrace();
             }
-
-            Log.i("jo", jsonObject.toString());
 
             JSONObject currently = null;
             try {
@@ -151,6 +149,8 @@ public class MainActivity extends AppCompatActivity {
             temperatureText.setText(temperature + " \u00B0C");
             weatherDescription.setText("The weather in " + currentCity + " is " + summary);
             weatherIcon.setImageResource(id);
+        } else {
+            weatherDescription.setText("Weather provider unavailable");
         }
     }
 
@@ -159,53 +159,63 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected JSONObject doInBackground(String... params) {
 
-            Log.i("URL", params[0]);
-
-            String result = "";
-            JSONObject jsonObject = null;
-
-            URL url;
-            HttpURLConnection urlConnection = null;
-
+            //Log.i("URL", params[0]);
             try {
+                isReachable = InetAddress.getByName(queryString).isReachable(1000);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-                url = new URL(params[0]);
+            if (isReachable) {
 
-                urlConnection = (HttpURLConnection) url.openConnection();
+                String result = "";
+                JSONObject jsonObject = null;
 
-                InputStream inputStream = urlConnection.getInputStream();
-
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-
-                int data = inputStreamReader.read();
-
-                while (data != -1) {
-
-                    char current = (char) data;
-
-                    result += current;
-
-                    data = inputStreamReader.read();
-                }
+                URL url;
+                HttpURLConnection urlConnection = null;
 
                 try {
 
-                    jsonObject = new JSONObject(result);
+                    url = new URL(params[0]);
 
-                    //Log.i("temp now", temperature + icon + summary);
+                    urlConnection = (HttpURLConnection) url.openConnection();
 
-                } catch (JSONException e){
+                    InputStream inputStream = urlConnection.getInputStream();
+
+                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+
+                    int data = inputStreamReader.read();
+
+                    while (data != -1) {
+
+                        char current = (char) data;
+
+                        result += current;
+
+                        data = inputStreamReader.read();
+                    }
+
+                    try {
+
+                        jsonObject = new JSONObject(result);
+
+                        //Log.i("temp now", temperature + icon + summary);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    return jsonObject;
+
+                } catch (Exception e) {
                     e.printStackTrace();
+
+                    return null;
                 }
 
-                return jsonObject;
-
-            } catch (Exception e) {
-                e.printStackTrace();
-
+            } else {
                 return null;
             }
-
         }
     }
 
