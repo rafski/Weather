@@ -56,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
 
     ImageView weatherIcon;
 
+    View parentLayout;
+
     LocationManager locationManager;
     LocationListener locationListener;
 
@@ -224,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        View parentLayout = findViewById(R.id.fabCoordinator);
+        parentLayout = findViewById(R.id.fabCoordinator);
 
         temperatureText = (TextView)findViewById(R.id.temperatureTextView);
         weatherDescription = (TextView)findViewById(R.id.weatherDescriptionTextView);
