@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.URL;
 import java.util.List;
 import java.util.Locale;
@@ -45,9 +44,6 @@ public class MainActivity extends AppCompatActivity {
     String currentLocation;
     String queryString;
     String currentCity;
-
-    boolean isReachable = false;
-
 
     Location location;
 
@@ -109,66 +105,62 @@ public class MainActivity extends AppCompatActivity {
             String parameters = "?exclude=minutely,hourly,alerts,flags?&&units=uk2";
             queryString = url + key + location + parameters ;
 
-            //Log.i("generated url", queryString);
-
     }
 
     public void updateWeather(){
-        
-        if (queryString != null && isReachable){
+
+
+        if (queryString != null){
 
             DownloadTask task = new DownloadTask();
             JSONObject jsonObject = null;
 
             try {
                 jsonObject = task.execute(queryString).get();
-                Log.i("jo", jsonObject.toString());
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e) {
                 e.printStackTrace();
             }
+            if (jsonObject != null) {
+                JSONObject currently = null;
+                try {
+                    currently = jsonObject.getJSONObject("currently");
 
-            JSONObject currently = null;
-            try {
-                currently = jsonObject.getJSONObject("currently");
+                    temperature = String.valueOf(Math.round(currently.getDouble("temperature")));
 
-                temperature = String.valueOf(Math.round(currently.getDouble("temperature")));
+                    icon = currently.getString("icon");
 
-                icon = currently.getString("icon");
+                    summary = currently.getString("summary");
 
-                summary = currently.getString("summary");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                String iconReadable = icon.replace("-", "_");
 
-            } catch (JSONException e) {
-                e.printStackTrace();
+                Context c = getApplicationContext();
+                int id = c.getResources().getIdentifier("drawable/" + iconReadable, null, c.getPackageName());
+
+                temperatureText.setText(temperature + " \u00B0C");
+                weatherDescription.setText("The weather in " + currentCity + " is " + summary);
+                weatherIcon.setImageResource(id);
+            }else{
+                weatherDescription.setText("Weather provider unavailable");
             }
-            String iconReadable = icon.replace("-", "_");
 
-            Context c = getApplicationContext();
-            int id = c.getResources().getIdentifier("drawable/" + iconReadable, null, c.getPackageName());
-
-            temperatureText.setText(temperature + " \u00B0C");
-            weatherDescription.setText("The weather in " + currentCity + " is " + summary);
-            weatherIcon.setImageResource(id);
         } else {
             weatherDescription.setText("Weather provider unavailable");
         }
     }
+
 
     public class DownloadTask extends AsyncTask<String, Void, JSONObject> {
 
         @Override
         protected JSONObject doInBackground(String... params) {
 
-            //Log.i("URL", params[0]);
-            try {
-                isReachable = InetAddress.getByName(queryString).isReachable(1000);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            if (isReachable) {
+                Log.i("URL", params[0]);
 
                 String result = "";
                 JSONObject jsonObject = null;
@@ -215,9 +207,6 @@ public class MainActivity extends AppCompatActivity {
                     return null;
                 }
 
-            } else {
-                return null;
-            }
         }
     }
 
