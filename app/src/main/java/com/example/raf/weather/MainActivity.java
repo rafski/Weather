@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     String summary;
     String windSpeed;
     String pressure;
+    String dailySummary;
     String currentLocation;
     String queryString;
     String currentCity;
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(MainActivity.this, WeatherDetail.class);
         intent.putExtra("location", currentLocation);
+        intent.putExtra("dailySummary", dailySummary);
 
         if (searchedCity !=null) {
             intent.putExtra("cityName", capitalizedCity);
@@ -146,8 +148,11 @@ public class MainActivity extends AppCompatActivity {
             }
             if (jsonObject != null) {
                 JSONObject currently = null;
+                JSONObject daily = null;
                 try {
                     currently = jsonObject.getJSONObject("currently");
+
+                    daily = jsonObject.getJSONObject("daily");
 
                     temperature = String.valueOf(Math.round(currently.getDouble("temperature")));
 
@@ -159,9 +164,13 @@ public class MainActivity extends AppCompatActivity {
 
                     pressure = currently.getString("pressure");
 
+                    dailySummary = daily.getString("summary");
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+
+
                 String iconReadable = icon.replace("-", "_");
 
                 Context c = getApplicationContext();
