@@ -2,6 +2,7 @@ package com.example.raf.weather;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     String queryString;
     String currentCity;
     String searchedCity;
+    String capitalizedCity;
 
     Location location;
 
@@ -64,6 +66,19 @@ public class MainActivity extends AppCompatActivity {
     LocationManager locationManager;
     LocationListener locationListener;
 
+    public void goToDetails(View view){
+
+        Intent intent = new Intent(MainActivity.this, WeatherDetail.class);
+        intent.putExtra("location", currentLocation);
+
+        if (searchedCity !=null) {
+            intent.putExtra("cityName", capitalizedCity);
+        }else {
+            intent.putExtra("cityName", currentCity);
+        }
+            startActivity(intent);
+
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -75,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
 
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 60000, 500, locationListener);
             }
-
         }
+
     }
 
     public void updateLocation (Location location){
@@ -154,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
 
                 temperatureText.setText(temperature + " \u00B0C");
                 if (searchedCity !=null){
-                    String capitalizedCity  = searchedCity;
+                    capitalizedCity  = searchedCity;
                     capitalizedCity = capitalizedCity.substring(0,1).toUpperCase() + capitalizedCity.substring(1).toLowerCase();
                     weatherDescription.setText("It is " + summary + " in " + capitalizedCity + " , the pressure is " + pressure + " hPa with a wind speed of " + windSpeed +" mph.");
                 }else {
@@ -327,8 +342,6 @@ public class MainActivity extends AppCompatActivity {
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
-                Log.i("palce", "Place: " + place.getName());
                 searchedCity = String.valueOf(place.getName());
                 currentLocation = String.valueOf(place.getLatLng().latitude) +", " + String.valueOf(place.getLatLng().longitude);
 
@@ -338,7 +351,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Status status) {
-                // TODO: Handle the error.
                 Log.i("error", "An error occurred: " + status);
             }
         });

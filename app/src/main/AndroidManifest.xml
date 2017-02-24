@@ -22,8 +22,13 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAOQCbjJRh42eDLwu7s5gnscYPJyEUe0OY" />
+            android:value="AIzaSyCulbijalgngnPNRGWy30t5Hb_3m5Hi36U" />
+        <!--
+        AIzaSyCulbijalgngnPNRGWy30t5Hb_3m5Hi36U
 
+        key from places original AIzaSyAOQCbjJRh42eDLwu7s5gnscYPJyEUe0OY
+        -->
+        <activity android:name=".WeatherDetail"></activity>
     </application>
 
 </manifest>
