@@ -1,7 +1,6 @@
 package com.example.raf.weather;
 
 import android.Manifest;
-import android.app.SearchManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -17,17 +16,16 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,7 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
-public class MainActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+public class MainActivity extends AppCompatActivity {
 
 
     String temperature;
@@ -65,55 +63,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     LocationManager locationManager;
     LocationListener locationListener;
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        // Retrieve the SearchView and plug it into SearchManager
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.action_search));
-        SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        searchView.setOnQueryTextListener(this);
-
-        return true;
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) {
-        searchedCity = query;
-        findCityLatLng();
-        encodeUrl();
-        updateWeather();
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        return false;
-    }
-
-    public void findCityLatLng() {
-
-        List<LatLng> cityLatLng = null;
-        try {
-            Geocoder gc = new Geocoder(this);
-            List<Address> addresses = gc.getFromLocationName(searchedCity, 1); // get the found Address Objects
-
-            //cityLatLng = new ArrayList<LatLng>(addresses.size());
-            for (Address a : addresses) {
-                if (a.hasLatitude() && a.hasLongitude()) {
-                   // cityLatLng.add(new LatLng(a.getLatitude(), a.getLongitude()));
-                    currentLocation = String.valueOf(a.getLatitude()) +", " + String.valueOf(a.getLongitude());
-                }
-            }
-        } catch (IOException e) {
-            // handle the exception
-        }
-
-        Log.i("latLng", currentLocation);
-
-    }
-
 
 
     @Override
@@ -291,9 +240,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         weatherDescription = (TextView)findViewById(R.id.weatherDescriptionTextView);
         weatherIcon = (ImageView)findViewById(R.id.weatherIcon);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
-        setSupportActionBar(myToolbar);
-
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
         locationListener = new LocationListener() {
@@ -360,6 +306,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         FAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 encodeUrl();
                 updateWeather();
 
@@ -371,6 +318,28 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
                     }
                 }).show();
+            }
+        });
+
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                Log.i("palce", "Place: " + place.getName());
+                searchedCity = String.valueOf(place.getName());
+                currentLocation = String.valueOf(place.getLatLng().latitude) +", " + String.valueOf(place.getLatLng().longitude);
+
+                encodeUrl();
+                updateWeather();
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i("error", "An error occurred: " + status);
             }
         });
     }
