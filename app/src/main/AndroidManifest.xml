@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -23,11 +24,7 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCulbijalgngnPNRGWy30t5Hb_3m5Hi36U" />
-        <!--
-        AIzaSyCulbijalgngnPNRGWy30t5Hb_3m5Hi36U
 
-        key from places original AIzaSyAOQCbjJRh42eDLwu7s5gnscYPJyEUe0OY
-        -->
         <activity android:name=".WeatherDetail"></activity>
     </application>
 
