@@ -18,6 +18,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -36,6 +37,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -43,12 +45,8 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends AppCompatActivity {
 
 
-    String temperature;
-    String icon;
-    String summary;
-    String windSpeed;
-    String pressure;
-    String dailySummary;
+    Weather currentWeather;
+    Weather dailyWeather;
     String currentLocation;
     String queryString;
     String currentCity;
@@ -71,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(MainActivity.this, WeatherDetail.class);
         intent.putExtra("location", currentLocation);
-        intent.putExtra("dailySummary", dailySummary);
+        intent.putExtra("dailySummary", dailyWeather.getWeeklySummary());
 
         if (searchedCity !=null) {
             intent.putExtra("cityName", capitalizedCity);
@@ -79,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("cityName", currentCity);
         }
             startActivity(intent);
-
     }
 
     @Override
@@ -149,40 +146,30 @@ public class MainActivity extends AppCompatActivity {
             if (jsonObject != null) {
                 JSONObject currently = null;
                 JSONObject daily = null;
+
+
                 try {
-                    currently = jsonObject.getJSONObject("currently");
+                    currentWeather = new Weather(jsonObject.getJSONObject("currently"));
+                    dailyWeather = new Weather(jsonObject.getJSONObject("daily"));
 
-                    daily = jsonObject.getJSONObject("daily");
-
-                    temperature = String.valueOf(Math.round(currently.getDouble("temperature")));
-
-                    icon = currently.getString("icon");
-
-                    summary = currently.getString("summary");
-
-                    windSpeed = currently.getString("windSpeed");
-
-                    pressure = currently.getString("pressure");
-
-                    dailySummary = daily.getString("summary");
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
 
-                String iconReadable = icon.replace("-", "_");
+                String iconReadable = currentWeather.getCurrentIcon().replace("-", "_");
 
                 Context c = getApplicationContext();
                 int id = c.getResources().getIdentifier("drawable/" + iconReadable, null, c.getPackageName());
 
-                temperatureText.setText(temperature + " \u00B0C");
+                temperatureText.setText(currentWeather.getCurrentTemperature() + " \u00B0C");
                 if (searchedCity !=null){
                     capitalizedCity  = searchedCity;
                     capitalizedCity = capitalizedCity.substring(0,1).toUpperCase() + capitalizedCity.substring(1).toLowerCase();
-                    weatherDescription.setText("It is " + summary + " in " + capitalizedCity + " , the pressure is " + pressure + " hPa with a wind speed of " + windSpeed +" mph.");
+                    weatherDescription.setText("It is " + currentWeather.getCurrentSummary() + " in " + capitalizedCity + " , the pressure is " + currentWeather.getCurrentPressure() + " hPa with a wind speed of " + currentWeather.getCurrentWindSpeed() +" mph.");
                 }else {
-                    weatherDescription.setText("It is " + summary + " in " + currentCity + " , the pressure is " + pressure + " hPa with a wind speed of " + windSpeed +" mph.");
+                    weatherDescription.setText("It is " + currentWeather.getCurrentSummary() + " in " + currentCity + " , the pressure is " + currentWeather.getCurrentPressure() + " hPa with a wind speed of " + currentWeather.getCurrentWindSpeed() +" mph.");
                 }
 
                 weatherIcon.setImageResource(id);
@@ -236,8 +223,6 @@ public class MainActivity extends AppCompatActivity {
 
                         jsonObject = new JSONObject(result);
 
-                        //Log.i("temp now", temperature + icon + summary);
-
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -251,6 +236,13 @@ public class MainActivity extends AppCompatActivity {
                 }
 
         }
+    }
+
+    private String getDate(long time) {
+        Calendar cal = Calendar.getInstance(Locale.ENGLISH);
+        cal.setTimeInMillis(time);
+        String date = DateFormat.format("dd-MM-yyyy", cal).toString();
+        return date;
     }
 
     @Override

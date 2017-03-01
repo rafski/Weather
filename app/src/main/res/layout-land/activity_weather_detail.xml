@@ -65,7 +65,7 @@
         android:id="@+id/plot"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        app:title="A Simple XY Plot"
+        app:title="Temperature"
         app:rangeTitle="range"
         app:domainTitle="domain"
         app:lineLabels="left|bottom"
