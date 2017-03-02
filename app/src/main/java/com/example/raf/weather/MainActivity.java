@@ -18,7 +18,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -40,7 +39,6 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -53,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     List<Weather> dailyDataArrayList;
     String weeklyMinTemps;
     String weeklyMaxTemps;
+    String graphDays;
     String currentLocation;
     String queryString;
     String currentCity;
@@ -87,25 +86,27 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
     }
 
+
+
     public void prepareDataForDetail(){
 
         List<Integer> weeklyMaxTempsList = new ArrayList<>();
         List<Integer> weeklyMinTempsList = new ArrayList<>();
+        List<String> days = new ArrayList<>();
 
         for(int i = 0; i < dailyDataArrayList.size(); i++) {
             weeklyMaxTempsList.add(Integer.parseInt(dailyDataArrayList.get(i).getMaxTemperature()));
             weeklyMinTempsList.add(Integer.parseInt(dailyDataArrayList.get(i).getMinTemperature()));
+            days.add(dailyDataArrayList.get(i).getTime());
 
             try {
                 weeklyMaxTemps = ObjectSerializer.serialize((Serializable) weeklyMaxTempsList);
                 weeklyMinTemps = ObjectSerializer.serialize((Serializable) weeklyMinTempsList);
+                graphDays = ObjectSerializer.serialize((Serializable) days);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
-        Log.i("min", String.valueOf(weeklyMinTempsList) + dailyDataArrayList.get(0).getMinTemperature());
-        Log.i("max", String.valueOf(weeklyMaxTempsList) + dailyDataArrayList.get(0).getMaxTemperature());
 
     }
 
@@ -272,12 +273,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String getDate(long time) {
-        Calendar cal = Calendar.getInstance(Locale.ENGLISH);
-        cal.setTimeInMillis(time);
-        String date = DateFormat.format("dd-MM-yyyy", cal).toString();
-        return date;
-    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

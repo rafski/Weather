@@ -6,12 +6,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.widget.TextView;
 
-import com.androidplot.xy.CatmullRomInterpolator;
-import com.androidplot.xy.LineAndPointFormatter;
-import com.androidplot.xy.SimpleXYSeries;
-import com.androidplot.xy.XYGraphWidget;
-import com.androidplot.xy.XYPlot;
-import com.androidplot.xy.XYSeries;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -19,13 +13,15 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.io.IOException;
-import java.text.FieldPosition;
-import java.text.Format;
-import java.text.ParsePosition;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 
 public class WeatherDetail extends FragmentActivity
         implements OnMapReadyCallback {
@@ -35,21 +31,21 @@ public class WeatherDetail extends FragmentActivity
     String dailySummary;
     ArrayList<Integer> maxTemps;
     ArrayList<Integer> minTemps;
-
-
-    private XYPlot plot;
+    ArrayList<String> days;
 
     TextView dailySummaryText;
 
     public void getDataFromMain() {
         String weeklyMaxTemps;
         String weeklyMinTemps;
+        String graphDays;
 
         Intent intent = getIntent();
         markerName = intent.getStringExtra("cityName");
         dailySummary = intent.getStringExtra("dailySummary");
         weeklyMaxTemps = intent.getStringExtra("weeklyMaxTemps");
         weeklyMinTemps = intent.getStringExtra("weeklyMinTemps");
+        graphDays = intent.getStringExtra("graphDays");
 
         try {
             maxTemps =(ArrayList<Integer>) ObjectSerializer.deserialize(weeklyMaxTemps);
@@ -59,6 +55,12 @@ public class WeatherDetail extends FragmentActivity
 
         try {
             minTemps =(ArrayList<Integer>) ObjectSerializer.deserialize(weeklyMinTemps);
+        } catch (IOException e) {
+            e.printStackTrace();
+        };
+
+        try {
+            days = (ArrayList<String>) ObjectSerializer.deserialize(weeklyMinTemps);
         } catch (IOException e) {
             e.printStackTrace();
         };
@@ -93,49 +95,53 @@ public class WeatherDetail extends FragmentActivity
         getDataFromMain();
         showDetails();
 
-        plot = (XYPlot) findViewById(R.id.plot);
+        Calendar calendar = Calendar.getInstance();
 
-        final Number[] domainLabels = {1, 2, 3, 4, 5};
-        Number[] series1Numbers = {maxTemps.get(0), maxTemps.get(1), maxTemps.get(2),maxTemps.get(3), maxTemps.get(4)};
-        Number[] series2Numbers = {minTemps.get(0), minTemps.get(1), minTemps.get(2),minTemps.get(3), minTemps.get(4)};
-
-        XYSeries series1 = new SimpleXYSeries(
-                Arrays.asList(series1Numbers), SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "Temp Max");
-        XYSeries series2 = new SimpleXYSeries(
-                Arrays.asList(series2Numbers), SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "Temp Min");
-
-        // create formatters to use for drawing a series using LineAndPointRenderer
-        // and configure them from xml:
-        LineAndPointFormatter series1Format = new LineAndPointFormatter(Color.RED, Color.RED, null, null);
-        LineAndPointFormatter series2Format = new LineAndPointFormatter(Color.GREEN, Color.GREEN, null, null);
-
-        // just for fun, add some smoothing to the lines:
-        // see: http://androidplot.com/smooth-curves-and-androidplot/
-        series1Format.setInterpolationParams(
-                new CatmullRomInterpolator.Params(10, CatmullRomInterpolator.Type.Centripetal));
-        series2Format.setInterpolationParams(
-                new CatmullRomInterpolator.Params(10, CatmullRomInterpolator.Type.Centripetal));
-
-        series1Format.setLegendIconEnabled(false);
-        series2Format.setLegendIconEnabled(false);
+        Date d0 = calendar.getTime();
+        calendar.add(Calendar.DATE, 0);
+        Date d1 = calendar.getTime();
+        calendar.add(Calendar.DATE, 1);
+        Date d2 = calendar.getTime();
+        calendar.add(Calendar.DATE, 1);
+        Date d3 = calendar.getTime();
+        calendar.add(Calendar.DATE, 1);
+        Date d4 = calendar.getTime();
 
 
-        // add a new series' to the xyplot:
-        plot.addSeries(series1, series1Format);
-        plot.addSeries(series2, series2Format);
 
 
-        plot.getGraph().getLineLabelStyle(XYGraphWidget.Edge.BOTTOM).setFormat(new Format() {
-            @Override
-            public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos) {
-                int i = Math.round(((Number) obj).floatValue());
-                return toAppendTo.append(domainLabels[i]);
-            }
-            @Override
-            public Object parseObject(String source, ParsePosition pos) {
-                return null;
-            }
+        GraphView graph = (GraphView) findViewById(R.id.graph);
+        LineGraphSeries<DataPoint> maxTemp = new LineGraphSeries<DataPoint>(new DataPoint[] {
+                new DataPoint(d0, maxTemps.get(0)),
+                new DataPoint(d1, maxTemps.get(1)),
+                new DataPoint(d2, maxTemps.get(2)),
+                new DataPoint(d3, maxTemps.get(3)),
+                new DataPoint(d4, maxTemps.get(4))
         });
+        graph.addSeries(maxTemp);
+        graph.getViewport().setMinX(d0.getTime());
+        graph.getViewport().setMaxX(d4.getTime());
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(this));
+        graph.getGridLabelRenderer().setNumHorizontalLabels(3);
+        maxTemp.setAnimated(true);
+        maxTemp.setColor(R.color.accent);
+        maxTemp.setDrawBackground(true);
+        maxTemp.setBackgroundColor(R.color.wind);
+
+        LineGraphSeries<DataPoint> minTemp = new LineGraphSeries<DataPoint>(new DataPoint[] {
+                new DataPoint(d0, minTemps.get(0)),
+                new DataPoint(d1, minTemps.get(1)),
+                new DataPoint(d2, minTemps.get(2)),
+                new DataPoint(d3, minTemps.get(3)),
+                new DataPoint(d4, minTemps.get(4))
+        });
+        graph.addSeries(minTemp);
+        minTemp.setAnimated(true);
+        minTemp.setColor(R.color.primary_dark);
+        minTemp.setDrawBackground(true);
+        minTemp.setBackgroundColor(Color.WHITE);
+
 
 
     }

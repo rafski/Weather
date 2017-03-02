@@ -80,4 +80,14 @@ public class Weather {
         }
         return null;
     }
+
+    public String getTime(){
+
+        try {
+            return this.jsonObject.getString("time");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
