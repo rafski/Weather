@@ -29,14 +29,17 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -47,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
 
     Weather currentWeather;
     Weather dailyWeather;
+    List<Weather> dailyDataArrayList;
+    String weeklyMinTemps;
+    String weeklyMaxTemps;
     String currentLocation;
     String queryString;
     String currentCity;
@@ -69,7 +75,9 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(MainActivity.this, WeatherDetail.class);
         intent.putExtra("location", currentLocation);
-        intent.putExtra("dailySummary", dailyWeather.getWeeklySummary());
+        intent.putExtra("dailySummary", dailyWeather.getSummary());
+        intent.putExtra("weeklyMinTemps", weeklyMinTemps);
+        intent.putExtra("weeklyMaxTemps", weeklyMaxTemps);
 
         if (searchedCity !=null) {
             intent.putExtra("cityName", capitalizedCity);
@@ -77,6 +85,28 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("cityName", currentCity);
         }
             startActivity(intent);
+    }
+
+    public void prepareDataForDetail(){
+
+        List<Integer> weeklyMaxTempsList = new ArrayList<>();
+        List<Integer> weeklyMinTempsList = new ArrayList<>();
+
+        for(int i = 0; i < dailyDataArrayList.size(); i++) {
+            weeklyMaxTempsList.add(Integer.parseInt(dailyDataArrayList.get(i).getMaxTemperature()));
+            weeklyMinTempsList.add(Integer.parseInt(dailyDataArrayList.get(i).getMinTemperature()));
+
+            try {
+                weeklyMaxTemps = ObjectSerializer.serialize((Serializable) weeklyMaxTempsList);
+                weeklyMinTemps = ObjectSerializer.serialize((Serializable) weeklyMinTempsList);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Log.i("min", String.valueOf(weeklyMinTempsList) + dailyDataArrayList.get(0).getMinTemperature());
+        Log.i("max", String.valueOf(weeklyMaxTempsList) + dailyDataArrayList.get(0).getMaxTemperature());
+
     }
 
     @Override
@@ -147,29 +177,33 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject currently = null;
                 JSONObject daily = null;
 
-
                 try {
                     currentWeather = new Weather(jsonObject.getJSONObject("currently"));
                     dailyWeather = new Weather(jsonObject.getJSONObject("daily"));
+                    JSONArray dailyData = jsonObject.getJSONObject("daily").getJSONArray("data");
 
+                    dailyDataArrayList = new ArrayList<>();
+
+                    for(int i = 0; i < dailyData.length(); i++) {
+                        dailyDataArrayList.add(new Weather(dailyData.getJSONObject(i)));
+                    }
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
-
-                String iconReadable = currentWeather.getCurrentIcon().replace("-", "_");
+                String iconReadable = currentWeather.getIcon().replace("-", "_");
 
                 Context c = getApplicationContext();
                 int id = c.getResources().getIdentifier("drawable/" + iconReadable, null, c.getPackageName());
 
-                temperatureText.setText(currentWeather.getCurrentTemperature() + " \u00B0C");
+                temperatureText.setText(currentWeather.getTemperature() + " \u00B0C");
                 if (searchedCity !=null){
                     capitalizedCity  = searchedCity;
                     capitalizedCity = capitalizedCity.substring(0,1).toUpperCase() + capitalizedCity.substring(1).toLowerCase();
-                    weatherDescription.setText("It is " + currentWeather.getCurrentSummary() + " in " + capitalizedCity + " , the pressure is " + currentWeather.getCurrentPressure() + " hPa with a wind speed of " + currentWeather.getCurrentWindSpeed() +" mph.");
+                    weatherDescription.setText("It is " + currentWeather.getSummary() + " in " + capitalizedCity + " , the pressure is " + currentWeather.getPressure() + " hPa with a wind speed of " + currentWeather.getWindSpeed() +" mph.");
                 }else {
-                    weatherDescription.setText("It is " + currentWeather.getCurrentSummary() + " in " + currentCity + " , the pressure is " + currentWeather.getCurrentPressure() + " hPa with a wind speed of " + currentWeather.getCurrentWindSpeed() +" mph.");
+                    weatherDescription.setText("It is " + currentWeather.getSummary() + " in " + currentCity + " , the pressure is " + currentWeather.getPressure() + " hPa with a wind speed of " + currentWeather.getWindSpeed() +" mph.");
                 }
 
                 weatherIcon.setImageResource(id);
@@ -307,6 +341,7 @@ public class MainActivity extends AppCompatActivity {
 
         encodeUrl();
         updateWeather();
+        prepareDataForDetail();
 
         Snackbar.make(parentLayout, "Weather updated", Snackbar.LENGTH_LONG)
                 .setAction("CLOSE", new View.OnClickListener() {
@@ -325,6 +360,7 @@ public class MainActivity extends AppCompatActivity {
 
                 encodeUrl();
                 updateWeather();
+                prepareDataForDetail();
 
                 Snackbar snackbar = Snackbar
                         .make(view, "Weather updated", Snackbar.LENGTH_LONG);
@@ -348,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
 
                 encodeUrl();
                 updateWeather();
+                prepareDataForDetail();
             }
 
             @Override

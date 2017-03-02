@@ -14,78 +14,70 @@ public class Weather {
         this.jsonObject = jsonObject;
     }
 
-    public String getCurrentTemperature() {
+    public String getTemperature() {
         try {
             return String.valueOf(Math.round(this.jsonObject.getDouble("temperature")));
         } catch (JSONException e) {
             e.printStackTrace();
-            return null;
         }
+        return null;
     }
 
-    public String getCurrentIcon(){
+    public String getMaxTemperature() {
+        try {
+            return String.valueOf(Math.round(this.jsonObject.getDouble("temperatureMax")));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String getMinTemperature() {
+        try {
+            return String.valueOf(Math.round(this.jsonObject.getDouble("temperatureMin")));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String getIcon(){
 
         try {
             return this.jsonObject.getString("icon");
         } catch (JSONException e) {
             e.printStackTrace();
-            return null;
         }
-
+        return null;
     }
 
-    public String getCurrentWindSpeed(){
+    public String getWindSpeed(){
 
         try {
             return this.jsonObject.getString("windSpeed");
         } catch (JSONException e) {
             e.printStackTrace();
-            return null;
         }
-
+        return null;
     }
 
-    public String getCurrentSummary(){
+    public String getSummary(){
 
         try {
             return this.jsonObject.getString("summary");
         } catch (JSONException e) {
             e.printStackTrace();
-            return null;
         }
-
+        return null;
     }
 
-    public String getCurrentPressure(){
+    public String getPressure(){
 
         try {
             return this.jsonObject.getString("pressure");
         } catch (JSONException e) {
             e.printStackTrace();
-            return null;
         }
-
-    }
-
-    public String getWeeklySummary(){
-
-        try {
-            return this.jsonObject.getString("summary");
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-    }
-
-    public String getDailySummary(){
-
-        try {
-            return this.jsonObject.getJSONArray("data").getJSONObject(0).getString("summary");
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
-        }
-
+        return null;
     }
 }

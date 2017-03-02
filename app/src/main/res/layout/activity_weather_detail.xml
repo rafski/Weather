@@ -27,7 +27,7 @@
     </android.support.v7.widget.CardView>
 
     <android.support.v7.widget.CardView
-        android:layout_height="170dp"
+        android:layout_height="140dp"
         android:layout_marginEnd="16dp"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_width="0dp"
@@ -37,7 +37,7 @@
         app:layout_constraintHorizontal_bias="0.43"
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@+id/cardView2"
-        android:backgroundTint="@color/rain">
+        android:backgroundTint="@color/primary_light">
 
         <TextView
             android:layout_width="match_parent"
@@ -51,20 +51,22 @@
 
     <android.support.v7.widget.CardView
         android:layout_width="0dp"
-        android:layout_height="170dp"
+        android:layout_height="210dp"
         app:layout_constraintTop_toBottomOf="@+id/cardView"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginStart="16dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        android:id="@+id/graphContainer" >
+        android:id="@+id/graphContainer"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="16dp">
 
     <com.androidplot.xy.XYPlot
         style="@style/APDefacto.Light"
         android:id="@+id/plot"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:title="Temperature"
         app:rangeTitle="temperature"
         app:domainTitle="day"
