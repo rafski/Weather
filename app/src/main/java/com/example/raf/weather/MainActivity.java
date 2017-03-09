@@ -9,7 +9,6 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -33,11 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -52,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     String weeklyMinTemps;
     String weeklyMaxTemps;
     String graphDays;
+    String weeklySummaries;
     String currentLocation;
     String queryString;
     String currentCity;
@@ -77,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("dailySummary", dailyWeather.getSummary());
         intent.putExtra("weeklyMinTemps", weeklyMinTemps);
         intent.putExtra("weeklyMaxTemps", weeklyMaxTemps);
+        intent.putExtra("weeklySummaries", weeklySummaries);
 
         if (searchedCity !=null) {
             intent.putExtra("cityName", capitalizedCity);
@@ -92,16 +89,19 @@ public class MainActivity extends AppCompatActivity {
 
         List<Integer> weeklyMaxTempsList = new ArrayList<>();
         List<Integer> weeklyMinTempsList = new ArrayList<>();
+        List<String> weeklySummaryList = new ArrayList<>();
         List<String> days = new ArrayList<>();
 
         for(int i = 0; i < dailyDataArrayList.size(); i++) {
             weeklyMaxTempsList.add(Integer.parseInt(dailyDataArrayList.get(i).getMaxTemperature()));
             weeklyMinTempsList.add(Integer.parseInt(dailyDataArrayList.get(i).getMinTemperature()));
+            weeklySummaryList.add(dailyDataArrayList.get(i).getSummary());
             days.add(dailyDataArrayList.get(i).getTime());
 
             try {
                 weeklyMaxTemps = ObjectSerializer.serialize((Serializable) weeklyMaxTempsList);
                 weeklyMinTemps = ObjectSerializer.serialize((Serializable) weeklyMinTempsList);
+                weeklySummaries = ObjectSerializer.serialize((Serializable) weeklySummaryList);
                 graphDays = ObjectSerializer.serialize((Serializable) days);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -126,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void updateLocation (Location location){
 
-        //Log.i("Location", String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude()));
         currentLocation = String.valueOf(location.getLatitude()) + ", " + String.valueOf(location.getLongitude());
 
         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
@@ -136,11 +135,8 @@ public class MainActivity extends AppCompatActivity {
 
             if (addressList != null && addressList.size() > 0){
 
-                //Log.i("address", addressList.get(0).toString());
 
                 currentCity = addressList.get(0).getLocality().toString();
-
-
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -214,62 +210,6 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
             weatherDescription.setText("Weather provider unavailable");
-        }
-    }
-
-
-
-
-    public class DownloadTask extends AsyncTask<String, Void, JSONObject> {
-
-        @Override
-        protected JSONObject doInBackground(String... params) {
-
-                Log.i("URL", params[0]);
-
-                String result = "";
-                JSONObject jsonObject = null;
-
-                URL url;
-                HttpURLConnection urlConnection = null;
-
-                try {
-
-                    url = new URL(params[0]);
-
-                    urlConnection = (HttpURLConnection) url.openConnection();
-
-                    InputStream inputStream = urlConnection.getInputStream();
-
-                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-
-                    int data = inputStreamReader.read();
-
-                    while (data != -1) {
-
-                        char current = (char) data;
-
-                        result += current;
-
-                        data = inputStreamReader.read();
-                    }
-
-                    try {
-
-                        jsonObject = new JSONObject(result);
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                    return jsonObject;
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    return null;
-                }
-
         }
     }
 

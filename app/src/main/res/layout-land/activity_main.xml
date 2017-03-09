@@ -25,7 +25,8 @@
             android:layout_height="match_parent"
             android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
             tools:layout_editor_absoluteY="8dp"
-            tools:layout_editor_absoluteX="8dp" />
+            tools:layout_editor_absoluteX="8dp"
+            tools:layout="@android:layout/test_list_item" />
     </android.support.v7.widget.CardView>
 
 

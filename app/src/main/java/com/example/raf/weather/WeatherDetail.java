@@ -32,13 +32,18 @@ public class WeatherDetail extends FragmentActivity
     ArrayList<Integer> maxTemps;
     ArrayList<Integer> minTemps;
     ArrayList<String> days;
+    ArrayList<String> summaries;
 
     TextView dailySummaryText;
+    TextView tomorrowText;
+    TextView dayTwo;
+    TextView dayThree;
 
     public void getDataFromMain() {
         String weeklyMaxTemps;
         String weeklyMinTemps;
         String graphDays;
+        String weeklySummaries;
 
         Intent intent = getIntent();
         markerName = intent.getStringExtra("cityName");
@@ -46,6 +51,7 @@ public class WeatherDetail extends FragmentActivity
         weeklyMaxTemps = intent.getStringExtra("weeklyMaxTemps");
         weeklyMinTemps = intent.getStringExtra("weeklyMinTemps");
         graphDays = intent.getStringExtra("graphDays");
+        weeklySummaries = intent.getStringExtra("weeklySummaries");
 
         try {
             maxTemps =(ArrayList<Integer>) ObjectSerializer.deserialize(weeklyMaxTemps);
@@ -60,7 +66,12 @@ public class WeatherDetail extends FragmentActivity
         };
 
         try {
-            days = (ArrayList<String>) ObjectSerializer.deserialize(weeklyMinTemps);
+            days = (ArrayList<String>) ObjectSerializer.deserialize(graphDays);
+        } catch (IOException e) {
+            e.printStackTrace();
+        };
+        try {
+            summaries = (ArrayList<String>) ObjectSerializer.deserialize(weeklySummaries);
         } catch (IOException e) {
             e.printStackTrace();
         };
@@ -80,12 +91,20 @@ public class WeatherDetail extends FragmentActivity
             dailySummaryText.setText(dailySummary);
         }
 
+        tomorrowText.setText("Tommorow: " + summaries.get(0) + " Temperature from " + minTemps.get(0) + " \u00B0C"+ " to " + maxTemps.get(0) + " \u00B0C");
+        dayTwo.setText("Day after tomorrow: " + summaries.get(1) + " Temperature from " + minTemps.get(1) + " \u00B0C"+ " to " + maxTemps.get(1) + " \u00B0C");
+        dayThree.setText("In three days: " + summaries.get(2) + " Temperature from " + minTemps.get(2) + " \u00B0C"+ " to " + maxTemps.get(2) + " \u00B0C");
+
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather_detail);
+
+        tomorrowText = (TextView)findViewById(R.id.tomorrowText);
+        dayTwo = (TextView)findViewById(R.id.twoDaysText);
+        dayThree = (TextView)findViewById(R.id.threeDaysText);
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
